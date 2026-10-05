@@ -2,28 +2,47 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
+                checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Maven Build & Test') {
             steps {
-                echo 'Building DevOps CI/CD application...'
+                sh 'mvn clean test package'
             }
         }
 
-        stage('Test') {
+        stage('Docker Build') {
             steps {
-                echo 'Running tests...'
+                sh 'docker build -t devops-cicd-demo:latest .'
             }
         }
 
-        stage('Success') {
+        stage('Deploy Container') {
             steps {
-                echo 'CI/CD Pipeline is working successfully!'
+                sh '''
+                    docker stop devops-cicd-demo-container || true
+                    docker rm devops-cicd-demo-container || true
+
+                    docker run -d \
+                      --name devops-cicd-demo-container \
+                      -p 8081:8080 \
+                      devops-cicd-demo:latest
+                '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI/CD Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'CI/CD Pipeline failed!'
         }
     }
 }
