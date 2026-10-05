@@ -45,4 +45,5 @@ pipeline {
             echo 'CI/CD Pipeline failed!'
         }
     }
+    //ci/cd poll scm test
 }
