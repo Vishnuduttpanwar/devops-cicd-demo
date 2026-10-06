@@ -20,6 +20,22 @@ pipeline {
                 sh 'docker build -t devops-cicd-demo:latest .'
             }
         }
+        stage('Docker Hub Push') {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-credentials',
+            usernameVariable: 'DOCKERHUB_USERNAME',
+            passwordVariable: 'DOCKERHUB_TOKEN'
+        )]) {
+            sh '''
+                echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+                docker tag devops-cicd-demo:latest "$DOCKERHUB_USERNAME/devops-cicd-demo:latest"
+                docker push "$DOCKERHUB_USERNAME/devops-cicd-demo:latest"
+                docker logout
+            '''
+        }
+    }
+}
 
         stage('Deploy Container') {
             steps {
